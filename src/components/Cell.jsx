@@ -1,4 +1,11 @@
-import React, { useCallback, useState, memo, useMemo } from "react";
+import React, {
+  useCallback,
+  useState,
+  memo,
+  useMemo,
+  useEffect,
+  useRef,
+} from "react";
 
 import { Input, Header } from "./styles";
 
@@ -9,12 +16,21 @@ const Cell = ({
   setCellValue,
   computeCell,
   currentValue,
+  setSelectedCell,
+  isEditing,
+  selected,
 }) => {
   const [edit, setEdit] = useState(false);
   const [clickCount, setClickCount] = useState(0);
 
+  const inputRef = useRef(null);
+
   const handleClick = () => {
     setClickCount((prevCount) => prevCount + 1);
+    setSelectedCell({
+      row: rowIndex,
+      column: columnIndex,
+    });
 
     setTimeout(() => {
       if (clickCount === 1) {
@@ -40,11 +56,11 @@ const Cell = ({
   };
 
   const value = useMemo(() => {
-    if (edit) {
+    if (edit || isEditing) {
       return currentValue || "";
     }
     return computeCell({ row: rowIndex, column: columnName });
-  }, [edit, currentValue, rowIndex, columnName, computeCell]);
+  }, [edit, isEditing, currentValue, rowIndex, columnName, computeCell]);
 
   const handleChange = useCallback(
     (event) => {
@@ -56,6 +72,12 @@ const Cell = ({
     },
     [rowIndex, columnName, setCellValue]
   );
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isEditing]);
 
   if (columnIndex === 0 && rowIndex === 0) {
     return <Header />;
@@ -73,14 +95,17 @@ const Cell = ({
     <Input
       onClick={handleClick}
       onKeyDown={handleKeyDown}
+      ref={inputRef}
       onBlur={handleBlur}
-      readOnly={!edit}
+      readOnly={!edit && !isEditing}
       value={value}
       type="text"
       onChange={handleChange}
       style={{
-        backgroundColor: edit ? "#e7f2f8" : "transparent",
+        backgroundColor:
+          selected || edit || isEditing ? "#e7f2f8" : "transparent",
         border: edit ? "1px solid #1581ba" : "1px solid #ccc",
+        outline: selected ? "2px solid #1581ba" : "none",
       }}
     />
   );
