@@ -16,7 +16,10 @@ const Cell = ({
   setCellValue,
   computeCell,
   currentValue,
+  originalCellValue,
+  setOriginalCellValue,
   setSelectedCell,
+  setEditCell,
   isEditing,
   selected,
 }) => {
@@ -31,10 +34,15 @@ const Cell = ({
       row: rowIndex,
       column: columnIndex,
     });
+    setOriginalCellValue(currentValue);
 
     setTimeout(() => {
       if (clickCount === 1) {
         setEdit(true);
+        setEditCell({
+          row: rowIndex,
+          column: columnIndex,
+        });
       }
       setClickCount(0);
     }, 300);
@@ -52,6 +60,14 @@ const Cell = ({
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       setEdit(false);
+    }
+    if (event.key === "Escape" && edit) {
+      setEdit(false);
+      setCellValue({
+        row: rowIndex,
+        column: columnName,
+        value: originalCellValue,
+      });
     }
   };
 

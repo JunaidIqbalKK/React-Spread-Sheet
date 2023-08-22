@@ -12,6 +12,7 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
   const [data, setData] = useState({});
   const [selectedCell, setSelectedCell] = useState({ row: 1, column: 1 });
   const [editCell, setEditCell] = useState(null);
+  const [originalCellValue, setOriginalCellValue] = useState(null);
 
   const setCellValue = useCallback(
     ({ row, column, value }) => {
@@ -99,15 +100,17 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
           break;
         case "F2":
           setEditCell(selectedCell);
+          setOriginalCellValue(
+            data[`${getColumnName(selectedCell.column)}${selectedCell.row}`]
+          );
           break;
         case "Escape":
           if (editCell) {
             setEditCell(null);
-            const { row, column } = editCell;
             setCellValue({
-              row,
-              column,
-              value: data[`${getColumnName(column)}${row}`],
+              row: selectedCell.row,
+              column: getColumnName(selectedCell.column),
+              value: originalCellValue,
             });
           }
           break;
@@ -123,7 +126,7 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
           }
           break;
         case "Delete":
-          if (selectedCell) {
+          if (selectedCell && !editCell) {
             setCellValue({
               row: selectedCell.row,
               column: getColumnName(selectedCell.column),
@@ -145,6 +148,8 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
     numberOfColumns,
     editCell,
     setCellValue,
+    originalCellValue,
+    setOriginalCellValue,
     data,
     selectedCell,
   ]);
@@ -166,9 +171,12 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
                       columnIndex={j}
                       columnName={columnName}
                       setCellValue={setCellValue}
+                      originalCellValue={originalCellValue}
+                      setOriginalCellValue={setOriginalCellValue}
                       currentValue={data[`${columnName}${i}`]}
                       computeCell={computeCell}
                       setSelectedCell={setSelectedCell}
+                      setEditCell={setEditCell}
                       isEditing={
                         editCell && editCell.row === i && editCell.column === j
                       }
