@@ -1,18 +1,22 @@
-import React, { useState, useCallback, Fragment, useEffect } from "react";
-import { create, all } from "mathjs";
-
+import React, { useCallback, Fragment, useEffect, useContext } from "react";
+import { SheetContext } from "./context/SheetData";
 import Cell from "./Cell";
 import { Sheet as StyledSheet } from "./styles";
 
-const math = create(all);
-
-const getColumnName = (index) => String.fromCharCode(64 + index);
-
-const Sheet = ({ numberOfRows, numberOfColumns }) => {
-  const [data, setData] = useState({});
-  const [selectedCell, setSelectedCell] = useState({ row: 1, column: 1 });
-  const [editCell, setEditCell] = useState(null);
-  const [originalCellValue, setOriginalCellValue] = useState(null);
+const Sheet = () => {
+  const {
+    data,
+    setData,
+    selectedCell,
+    setSelectedCell,
+    editCell,
+    setEditCell,
+    originalCellValue,
+    setOriginalCellValue,
+    getColumnName,
+    numberOfRow,
+    numberOfColumn,
+  } = useContext(SheetContext);
 
   const setCellValue = useCallback(
     ({ row, column, value }) => {
@@ -21,41 +25,6 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
       setData(newData);
     },
     [data, setData]
-  );
-
-  const computeCell = useCallback(
-    ({ row, column }) => {
-      const cellContent = data[`${column}${row}`];
-
-      if (!cellContent) {
-        return "";
-      }
-
-      if (cellContent.startsWith("=")) {
-        const formula = cellContent.substring(1); // Removing the "="
-
-        try {
-          const evaluatedFormula = formula
-            .split(/([+*-/%])/g)
-            .map((part) => {
-              if (/^[A-Za-z][0-9]$/g.test(part)) {
-                const referencedValue = data[part.toUpperCase()] || 0;
-                return referencedValue;
-              }
-              return part;
-            })
-            .join("");
-
-          const evaluatedValue = math.evaluate(evaluatedFormula, data);
-          return evaluatedValue.toString();
-        } catch (error) {
-          return "ERROR!";
-        }
-      }
-
-      return cellContent;
-    },
-    [data]
   );
 
   useEffect(() => {
@@ -74,7 +43,7 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
         case "ArrowDown":
           if (!editCell) {
             setSelectedCell((prevSelectedCell) => ({
-              row: Math.min(prevSelectedCell.row + 1, numberOfRows - 1),
+              row: Math.min(prevSelectedCell.row + 1, numberOfRow - 1),
               column: prevSelectedCell.column,
             }));
           }
@@ -91,10 +60,7 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
           if (!editCell) {
             setSelectedCell((prevSelectedCell) => ({
               row: prevSelectedCell.row,
-              column: Math.min(
-                prevSelectedCell.column + 1,
-                numberOfColumns - 1
-              ),
+              column: Math.min(prevSelectedCell.column + 1, numberOfColumn - 1),
             }));
           }
           break;
@@ -144,24 +110,29 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [
-    numberOfRows,
-    numberOfColumns,
+    numberOfRow,
+    numberOfColumn,
+    getColumnName,
     editCell,
+    setEditCell,
     setCellValue,
     originalCellValue,
     setOriginalCellValue,
     data,
     selectedCell,
+    setSelectedCell,
   ]);
 
+  useEffect(() => {}, [numberOfRow, numberOfColumn]);
+
   return (
-    <StyledSheet numberofcolumns={numberOfColumns}>
-      {Array(numberOfRows)
+    <StyledSheet numberofcolumns={numberOfColumn}>
+      {Array(numberOfRow)
         .fill()
         .map((m, i) => {
           return (
             <Fragment key={i}>
-              {Array(numberOfColumns)
+              {Array(numberOfColumn)
                 .fill()
                 .map((n, j) => {
                   const columnName = getColumnName(j);
@@ -171,12 +142,7 @@ const Sheet = ({ numberOfRows, numberOfColumns }) => {
                       columnIndex={j}
                       columnName={columnName}
                       setCellValue={setCellValue}
-                      originalCellValue={originalCellValue}
-                      setOriginalCellValue={setOriginalCellValue}
                       currentValue={data[`${columnName}${i}`]}
-                      computeCell={computeCell}
-                      setSelectedCell={setSelectedCell}
-                      setEditCell={setEditCell}
                       isEditing={
                         editCell && editCell.row === i && editCell.column === j
                       }
