@@ -10,14 +10,13 @@ import React, {
 import Dropdown from "react-bootstrap/Dropdown";
 import Button from "react-bootstrap/Button";
 import ButtonGroup from "react-bootstrap/ButtonGroup";
-import { SheetContext } from "./context/SheetData";
+import { SheetContext } from "../context/SheetData";
 import { Input } from "./styles";
 
 const Cell = ({
   rowIndex,
   columnIndex,
   columnName,
-  setCellValue,
   currentValue,
   isEditing,
   selected,
@@ -30,13 +29,10 @@ const Cell = ({
     setEditCell,
     originalCellValue,
     setOriginalCellValue,
+    setCellValue,
     computeCell,
-    addRowAbove,
-    addRowBelow,
-    deleteRow,
-    addColumnBefore,
-    addColumnAfter,
-    deleteColumn,
+    handleRow,
+    handleColumn,
   } = useContext(SheetContext);
 
   const inputRef = useRef(null);
@@ -131,13 +127,13 @@ const Cell = ({
           style={{ borderRadius: "0px" }}
         />
         <Dropdown.Menu>
-          <Dropdown.Item onClick={() => addRowAbove(rowIndex)}>
+          <Dropdown.Item onClick={() => handleRow(rowIndex, "addAbove")}>
             Add a row above
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => addRowBelow(rowIndex)}>
+          <Dropdown.Item onClick={() => handleRow(rowIndex, "addBelow")}>
             Add a row below
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => deleteRow(rowIndex)}>
+          <Dropdown.Item onClick={() => handleRow(rowIndex, "delete")}>
             Delete row
           </Dropdown.Item>
         </Dropdown.Menu>
@@ -159,13 +155,13 @@ const Cell = ({
           style={{ borderRadius: "0px" }}
         />
         <Dropdown.Menu>
-          <Dropdown.Item onClick={() => addColumnBefore(columnIndex)}>
+          <Dropdown.Item onClick={() => handleColumn(columnIndex, "addBefore")}>
             Add a column before
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => addColumnAfter(columnIndex)}>
+          <Dropdown.Item onClick={() => handleColumn(columnIndex, "addAfter")}>
             Add a column after
           </Dropdown.Item>
-          <Dropdown.Item onClick={() => deleteColumn(columnIndex)}>
+          <Dropdown.Item onClick={() => handleColumn(columnIndex, "delete")}>
             Delete column
           </Dropdown.Item>
         </Dropdown.Menu>
